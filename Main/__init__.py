@@ -40,6 +40,8 @@ def enter_to_game_page(username,password):
         print(x[0])
     while True:
         enemy_username = input('enter your enemy username : ')
+        if enemy_username == 'back':
+            break
         is_this_invalid = True
         for x in new_result:
             if x[0]==enemy_username:
@@ -52,14 +54,34 @@ def enter_to_game_page(username,password):
             print('here is your enemy')
             command_of_gamer1 = input('enter s,r,p  :     ')
             command_of_gamer2 = input('enter s,r,p  :     ')
-            if command_of_gamer1=='s' and command_of_gamer2=='p':
+            sql = "insert into games (player1_id,player2_id) values (%s,%s)"
+            val = (username,enemy_username)
+            mycursor.execute(sql,val)
+            mydb.commit()
+            if ((command_of_gamer1=='s' and command_of_gamer2=='p') or (command_of_gamer1 =='r' and command_of_gamer2 == 's' ) or (command_of_gamer1 == 'p' and command_of_gamer2=='r')):
                 print('gamer 1 won')
-            elif command_of_gamer1 =='r' and command_of_gamer2 == 's':
-                print('gamer 1 won')
-            elif command_of_gamer1 == 'p' and command_of_gamer2=='r':
-                print('gamer 1 won')
+                sql = "Select point from players where username = %s "
+                val = (username,)
+                mycursor.execute(sql,val)
+                result = mycursor.fetchone()
+                sql = "UPDATE players set point = %s where username = %s"
+                val = (result[0]+1,username)
+                mycursor.execute(sql,val)
+                mydb.commit()
             elif  ((command_of_gamer2=='s' and command_of_gamer1=='p') or (command_of_gamer2 =='r' and command_of_gamer1 == 's') or (command_of_gamer2 == 'p' and command_of_gamer1=='r') )  :
                 print('gamer 2 won')
+                sql = "Select point from players where username = %s "
+                val = (enemy_username,)
+                mycursor.execute(sql, val)
+                result = mycursor.fetchone()
+                sql = "UPDATE players set point = %s where username = %s"
+                val = (result[0] + 1,enemy_username)
+                mycursor.execute(sql, val)
+                mydb.commit()
+            elif ((command_of_gamer2==command_of_gamer1)):
+                print('no one won')
+            else:
+                print('invalid input')
 
 
 
@@ -128,7 +150,7 @@ def register():
 def run():
     print('hello welcome to this game')
     while True:
-        command = input('enter your command:')
+        command = input('enter your command 1)register\n2)login\n3)table\n4)exit\n5)logout  :')
         if command=='1':
             print('register')
             register()
@@ -142,6 +164,10 @@ def run():
         elif command == '4':
             print('exit')
             break
+        elif command == '5':
+            print('logout')
+            username = input('enter your username  :   ')
+            logout(username)
         else:
             print('error')
 run()
